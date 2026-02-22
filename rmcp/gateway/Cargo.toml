@@ -1,0 +1,6 @@
+[package]
+name = "rmcp-gateway"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

@@ -1,0 +1,6 @@
+[package]
+name = "rmcp-axum"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

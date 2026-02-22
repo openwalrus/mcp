@@ -1,0 +1,6 @@
+[package]
+name = "rmcp-manager"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

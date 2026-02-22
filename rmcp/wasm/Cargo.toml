@@ -1,0 +1,6 @@
+[package]
+name = "rmcp-wasm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

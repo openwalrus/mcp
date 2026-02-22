@@ -1,0 +1,23 @@
+[workspace]
+members = ["crates/*", "rmcp/*"]
+resolver = "2"
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+
+[workspace.dependencies]
+wmcp = { path = "crates/mcp" }
+wmcp-sdk = { path = "crates/sdk" }
+wmcp-cli = { path = "crates/cli" }
+rmcp-axum = { path = "rmcp/axum" }
+rmcp-gateway = { path = "rmcp/gateway" }
+rmcp-inspect = { path = "rmcp/inspect" }
+rmcp-manager = { path = "rmcp/manager" }
+rmcp-registry = { path = "rmcp/registry" }
+rmcp-wasm = { path = "rmcp/wasm" }
+
+# crates-io
+rmcp = "0.16.0"
+tracing = "0.1.44"
+tracing-subscriber = "0.3.22"

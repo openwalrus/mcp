@@ -1,0 +1,6 @@
+[package]
+name = "wmcp-cli"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

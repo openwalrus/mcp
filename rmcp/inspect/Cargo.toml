@@ -1,0 +1,7 @@
+[package]
+name = "rmcp-inspect"
+version.workspace = true
+edition.workspace = true
+description = "Command line tool to inspect MCP servers."
+
+[dependencies]
