@@ -2,6 +2,7 @@
 name = "rmcp-axum"
 version.workspace = true
 edition.workspace = true
+description = "Collection of tower extensions for serve `rmcp` with `axum`."
 
 [dependencies]
 axum = { workspace = true }
