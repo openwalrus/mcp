@@ -38,6 +38,13 @@
 //!     .layer(AuthLayer::new(MyAuth));
 //! ```
 
+mod api_key;
+mod bearer;
+
+pub use api_key::ApiKeyAuth;
+pub use bearer::BearerAuth;
+// Validator is defined below and re-exported here for discoverability.
+
 use futures::future::BoxFuture;
 use http::{Request, Response, StatusCode};
 use std::task::{Context, Poll};
@@ -57,6 +64,49 @@ pub trait Authenticator: Clone + Send + Sync + 'static {
     fn authenticate(
         &self,
         parts: &http::request::Parts,
+    ) -> impl Future<Output = Result<Self::Claims, Self::Error>> + Send;
+}
+
+/// Trait for validating a credential string.
+///
+/// This is the user-facing trait for auth plugins like [`BearerAuth`] and
+/// [`ApiKeyAuth`]. Users implement this to provide their validation logic,
+/// then wrap it in the appropriate plugin which handles credential extraction.
+///
+/// ```rust,ignore
+/// use rmcp_axum::auth::{Validator, BearerAuth, AuthLayer};
+///
+/// #[derive(Clone)]
+/// struct MyValidator;
+///
+/// impl Validator for MyValidator {
+///     type Claims = String;
+///     type Error = String;
+///
+///     async fn validate(&self, credential: &str) -> Result<String, String> {
+///         if credential == "secret" {
+///             Ok("authenticated".into())
+///         } else {
+///             Err("invalid".into())
+///         }
+///     }
+/// }
+///
+/// let app = axum::Router::new()
+///     .nest_service("/mcp", service)
+///     .layer(AuthLayer::new(BearerAuth::new(MyValidator)));
+/// ```
+pub trait Validator: Clone + Send + Sync + 'static {
+    /// The claims type produced on successful validation.
+    type Claims: Clone + Send + Sync + 'static;
+
+    /// The error type returned on validation failure.
+    type Error: std::fmt::Display + Send;
+
+    /// Validate the credential string and return claims, or an error.
+    fn validate(
+        &self,
+        credential: &str,
     ) -> impl Future<Output = Result<Self::Claims, Self::Error>> + Send;
 }
 

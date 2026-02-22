@@ -29,4 +29,6 @@
 //! axum::serve(listener, app).await?;
 //! ```
 
+pub use axum;
+
 pub mod auth;
