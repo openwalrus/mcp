@@ -1,6 +1,6 @@
 ## rmcp-axum
 
-Axum transport for rmcp.
+Collection of tower extensions for serve `rmcp` with `axum`.
 
 ## LICENSE
 
