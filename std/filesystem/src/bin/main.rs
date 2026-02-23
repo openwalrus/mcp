@@ -15,7 +15,12 @@ struct Cli {
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
+    if std::env::var_os("RUST_LOG").is_some() {
+        tracing_subscriber::fmt()
+            .with_writer(std::io::stderr)
+            .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+            .init();
+    }
     let cli = Cli::parse();
     let server = FilesystemServer::new(cli.allowed_dirs);
     let transport = rmcp::transport::stdio();

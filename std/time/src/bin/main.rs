@@ -11,8 +11,13 @@ struct Cli {}
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
     let _cli = Cli::parse();
+    if std::env::var_os("RUST_LOG").is_some() {
+        tracing_subscriber::fmt()
+            .with_writer(std::io::stderr)
+            .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+            .init();
+    }
     let server = TimeServer::new();
     let transport = rmcp::transport::stdio();
     server
