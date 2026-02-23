@@ -1,4 +1,4 @@
-mod inspect;
+//! MCP client connection handling for stdio and remote transports.
 
 use crate::error::Error;
 use rmcp::{
@@ -7,6 +7,8 @@ use rmcp::{
     transport::{TokioChildProcess, streamable_http_client::StreamableHttpClientTransportConfig},
 };
 use tokio::process::Command;
+
+mod inspect;
 
 pub use inspect::Inspect;
 

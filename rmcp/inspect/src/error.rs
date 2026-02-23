@@ -1,3 +1,5 @@
+//! Unified error types for the rmcp-inspect library.
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -19,4 +21,7 @@ pub enum Error {
 
     #[error("server did not provide peer info")]
     NoPeerInfo,
+
+    #[error("invalid argument (expected key=value): {0}")]
+    InvalidArg(String),
 }

@@ -1,11 +1,12 @@
+//! [`Inspect`] trait for querying MCP server capabilities.
+
+use crate::error::Error;
 use rmcp::{
     RoleClient,
     model::{Prompt, Resource, ResourceTemplate, Tool},
     service::RunningService,
 };
 use rmcp_registry::ServerDetail;
-
-use crate::error::Error;
 
 /// Inspection methods for a connected MCP server.
 pub trait Inspect {
