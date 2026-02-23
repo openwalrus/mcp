@@ -6,4 +6,9 @@
 //!
 //! To update the types, replace `schemas/server.schema.json` and rebuild.
 
-include!(concat!(env!("OUT_DIR"), "/server_schema.rs"));
+#[allow(clippy::derivable_impls)]
+mod generated {
+    include!(concat!(env!("OUT_DIR"), "/server_schema.rs"));
+}
+
+pub use generated::*;

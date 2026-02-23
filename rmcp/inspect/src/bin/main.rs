@@ -1,9 +1,12 @@
 //! Binary entry point for the rmcp-inspect CLI.
 
-use rmcp_inspect::{cmd::App, error::Error};
+use rmcp_inspect::cmd::App;
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() {
     tracing_subscriber::fmt::init();
-    App::run().await
+    if let Err(e) = App::run().await {
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
+    }
 }

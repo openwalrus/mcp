@@ -45,22 +45,24 @@ impl Target {
 pub async fn connect(target: Target) -> Result<RunningService<RoleClient, ()>, Error> {
     match target {
         Target::Remote { url, auth } => {
-            let mut config = StreamableHttpClientTransportConfig::default();
-            config.uri = url.into();
+            let config = StreamableHttpClientTransportConfig {
+                uri: url.into(),
+                ..Default::default()
+            };
             let config = if let Some(token) = auth {
                 config.auth_header(token)
             } else {
                 config
             };
             let transport = rmcp::transport::StreamableHttpClientTransport::from_config(config);
-            let service = ().serve(transport).await?;
+            let service = ().serve(transport).await.map_err(Box::new)?;
             Ok(service)
         }
         Target::Stdio { program, args } => {
             let mut cmd = Command::new(&program);
             cmd.args(&args);
             let transport = TokioChildProcess::new(cmd)?;
-            let service = ().serve(transport).await?;
+            let service = ().serve(transport).await.map_err(Box::new)?;
             Ok(service)
         }
     }

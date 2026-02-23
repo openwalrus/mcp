@@ -5,7 +5,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("MCP client initialization error: {0}")]
-    ClientInit(#[from] rmcp::service::ClientInitializeError),
+    ClientInit(#[from] Box<rmcp::service::ClientInitializeError>),
 
     #[error("MCP client error: {0}")]
     Service(#[from] rmcp::ServiceError),
