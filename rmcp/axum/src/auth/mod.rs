@@ -41,9 +41,11 @@
 mod api_key;
 mod bearer;
 
+#[cfg(feature = "jwt")]
+pub mod jwt;
+
 pub use api_key::ApiKeyAuth;
 pub use bearer::BearerAuth;
-// Validator is defined below and re-exported here for discoverability.
 
 use futures::future::BoxFuture;
 use http::{Request, Response, StatusCode};
