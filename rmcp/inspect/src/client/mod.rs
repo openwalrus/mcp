@@ -1,3 +1,5 @@
+mod inspect;
+
 use crate::error::Error;
 use rmcp::{
     RoleClient, ServiceExt,
@@ -5,6 +7,8 @@ use rmcp::{
     transport::{TokioChildProcess, streamable_http_client::StreamableHttpClientTransportConfig},
 };
 use tokio::process::Command;
+
+pub use inspect::Inspect;
 
 /// Parsed target for connecting to an MCP server.
 pub enum Target {

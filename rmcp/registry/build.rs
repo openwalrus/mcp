@@ -19,6 +19,5 @@ fn main() {
     let content = prettyplease::unparse(&ast);
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    fs::write(out_dir.join("server_schema.rs"), content)
-        .expect("failed to write generated code");
+    fs::write(out_dir.join("server_schema.rs"), content).expect("failed to write generated code");
 }

@@ -1,9 +1,8 @@
 use clap::Parser;
 use rmcp_inspect::{
     cli::{Cli, Command},
-    client::{Target, connect},
+    client::{Inspect, Target, connect},
     error::Error,
-    inspect,
 };
 
 #[tokio::main]
@@ -16,19 +15,19 @@ async fn main() -> Result<(), Error> {
 
     match cli.command {
         Command::Tool => {
-            let tools = inspect::list_tools(&service).await?;
+            let tools = service.list_tools().await?;
             println!("{}", serde_json::to_string_pretty(&tools)?);
         }
         Command::Prompt => {
-            let prompts = inspect::list_prompts(&service).await?;
+            let prompts = service.list_prompts().await?;
             println!("{}", serde_json::to_string_pretty(&prompts)?);
         }
         Command::Resource => {
-            let resources = inspect::list_resources(&service).await?;
+            let resources = service.list_resources().await?;
             println!("{}", serde_json::to_string_pretty(&resources)?);
         }
         Command::Meta => {
-            let meta = inspect::generate_meta(&service).await?;
+            let meta = service.generate_meta().await?;
             println!("{}", serde_json::to_string_pretty(&meta)?);
         }
     }

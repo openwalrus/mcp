@@ -6,7 +6,7 @@ description = "Command line tool to inspect MCP servers."
 
 [[bin]]
 name = "rmcp-inspect"
-path = "src/main.rs"
+path = "src/bin/main.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
