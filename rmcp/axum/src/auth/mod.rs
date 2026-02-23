@@ -1,59 +1,61 @@
-//! Pluggable authentication middleware for MCP servers.
+//! Authentication middleware for MCP servers.
 //!
 //! Provides a tower middleware that validates incoming requests using a
 //! user-defined [`Authenticator`] trait. On success, the authenticated
 //! claims are inserted into HTTP extensions and become accessible in MCP
 //! tool handlers via `Extension(parts): Extension<Parts>`.
 //!
+//! When configured with a [`ResourceServerConfig`](oauth::ResourceServerConfig),
+//! the middleware emits spec-compliant `WWW-Authenticate` headers in 401
+//! responses per the MCP authorization specification.
+//!
 //! # Example
 //!
 //! ```rust,ignore
-//! use rmcp_axum::auth::{AuthLayer, Authenticator};
-//! use http::request::Parts;
+//! use rmcp_axum::auth::{AuthLayer, BearerAuth, Validator};
+//! use rmcp_axum::auth::oauth::ResourceServerConfig;
 //!
 //! #[derive(Clone)]
-//! struct MyAuth;
+//! struct MyValidator;
 //!
-//! #[derive(Clone)]
-//! struct Claims { user_id: String }
-//!
-//! impl Authenticator for MyAuth {
-//!     type Claims = Claims;
+//! impl Validator for MyValidator {
+//!     type Claims = String;
 //!     type Error = String;
 //!
-//!     async fn authenticate(&self, parts: &Parts) -> Result<Self::Claims, Self::Error> {
-//!         let token = parts.headers
-//!             .get("authorization")
-//!             .and_then(|v| v.to_str().ok())
-//!             .and_then(|v| v.strip_prefix("Bearer "))
-//!             .ok_or("missing token")?;
+//!     async fn validate(&self, token: &str) -> Result<String, String> {
 //!         // validate token...
-//!         Ok(Claims { user_id: "user1".into() })
+//!         Ok("user1".into())
 //!     }
 //! }
 //!
-//! let service = StreamableHttpService::new(/* ... */);
+//! let rs_config = ResourceServerConfig {
+//!     resource_metadata_url:
+//!         "https://mcp.example.com/.well-known/oauth-protected-resource".into(),
+//!     default_scope: Some("mcp:tools".into()),
+//! };
+//!
 //! let app = axum::Router::new()
 //!     .nest_service("/mcp", service)
-//!     .layer(AuthLayer::new(MyAuth));
+//!     .layer(AuthLayer::new(BearerAuth::new(MyValidator)).with_resource_server(rs_config));
 //! ```
 
-mod api_key;
 mod bearer;
+
+pub mod oauth;
 
 #[cfg(feature = "jwt")]
 pub mod jwt;
 
-pub use api_key::ApiKeyAuth;
 pub use bearer::BearerAuth;
 
 use futures::future::BoxFuture;
 use http::{Request, Response, StatusCode};
+use oauth::{ResourceServerConfig, www_authenticate_401};
 use std::task::{Context, Poll};
 
 /// Trait for validating incoming MCP requests.
 ///
-/// Implement this with your auth logic (JWT validation, API key lookup, etc.).
+/// Implement this with your auth logic (JWT validation, etc.).
 /// On success, `Claims` is inserted into `http::Extensions`.
 pub trait Authenticator: Clone + Send + Sync + 'static {
     /// The claims type produced on successful authentication.
@@ -69,11 +71,11 @@ pub trait Authenticator: Clone + Send + Sync + 'static {
     ) -> impl Future<Output = Result<Self::Claims, Self::Error>> + Send;
 }
 
-/// Trait for validating a credential string.
+/// Trait for validating a credential string (e.g., a Bearer token).
 ///
-/// This is the user-facing trait for auth plugins like [`BearerAuth`] and
-/// [`ApiKeyAuth`]. Users implement this to provide their validation logic,
-/// then wrap it in the appropriate plugin which handles credential extraction.
+/// Users implement this to provide their validation logic, then wrap it
+/// in [`BearerAuth`] which handles credential extraction from the
+/// `Authorization` header.
 ///
 /// ```rust,ignore
 /// use rmcp_axum::auth::{Validator, BearerAuth, AuthLayer};
@@ -116,11 +118,26 @@ pub trait Validator: Clone + Send + Sync + 'static {
 #[derive(Clone)]
 pub struct AuthLayer<A> {
     authenticator: A,
+    resource_server: Option<ResourceServerConfig>,
 }
 
 impl<A> AuthLayer<A> {
     pub fn new(authenticator: A) -> Self {
-        Self { authenticator }
+        Self {
+            authenticator,
+            resource_server: None,
+        }
+    }
+
+    /// Configure OAuth resource server metadata for spec-compliant error
+    /// responses.
+    ///
+    /// When set, 401 responses will include a `WWW-Authenticate` header with
+    /// `resource_metadata` and `scope` parameters per the MCP authorization
+    /// specification.
+    pub fn with_resource_server(mut self, config: ResourceServerConfig) -> Self {
+        self.resource_server = Some(config);
+        self
     }
 }
 
@@ -133,6 +150,7 @@ where
     fn layer(&self, inner: S) -> Self::Service {
         AuthService {
             authenticator: self.authenticator.clone(),
+            resource_server: self.resource_server.clone(),
             inner,
         }
     }
@@ -142,6 +160,7 @@ where
 #[derive(Clone)]
 pub struct AuthService<A, S> {
     authenticator: A,
+    resource_server: Option<ResourceServerConfig>,
     inner: S,
 }
 
@@ -163,6 +182,7 @@ where
 
     fn call(&mut self, req: Request<B>) -> Self::Future {
         let authenticator = self.authenticator.clone();
+        let resource_server = self.resource_server.clone();
         let mut inner = self.inner.clone();
         // swap to ensure poll_ready state is preserved
         std::mem::swap(&mut self.inner, &mut inner);
@@ -177,8 +197,12 @@ where
                     inner.call(req).await
                 }
                 Err(err) => {
-                    let response = Response::builder()
-                        .status(StatusCode::UNAUTHORIZED)
+                    let mut builder = Response::builder().status(StatusCode::UNAUTHORIZED);
+                    if let Some(ref config) = resource_server {
+                        builder = builder
+                            .header(http::header::WWW_AUTHENTICATE, www_authenticate_401(config));
+                    }
+                    let response = builder
                         .body(axum::body::Body::from(err.to_string()))
                         .expect("valid response");
                     Ok(response)

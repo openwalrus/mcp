@@ -5,17 +5,18 @@ edition.workspace = true
 description = "Collection of tower extensions for serve `rmcp` with `axum`."
 
 [features]
-jwt = ["dep:anyhow", "dep:jsonwebtoken", "dep:reqwest", "dep:serde", "dep:tokio"]
+jwt = ["dep:anyhow", "dep:jsonwebtoken", "dep:reqwest", "dep:tokio"]
 
 [dependencies]
 axum = { workspace = true }
 futures = { workspace = true }
 http = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 tower = { workspace = true }
 
 # jwt feature deps
 anyhow = { version = "1", optional = true }
 jsonwebtoken = { version = "9", optional = true }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"], optional = true }
-serde = { version = "1", features = ["derive"], optional = true }
 tokio = { workspace = true, optional = true }

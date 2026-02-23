@@ -58,6 +58,9 @@ where
             .and_then(|v| v.strip_prefix("Bearer "))
             .ok_or_else(|| "missing or malformed Authorization header".to_string())?;
 
-        self.validator.validate(token).await.map_err(|e| e.to_string())
+        self.validator
+            .validate(token)
+            .await
+            .map_err(|e| e.to_string())
     }
 }

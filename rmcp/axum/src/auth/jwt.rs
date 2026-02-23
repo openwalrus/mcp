@@ -23,8 +23,8 @@
 //!     .layer(AuthLayer::new(BearerAuth::new(validator)));
 //! ```
 
-use anyhow::{Context, Result, anyhow};
 use crate::auth::Validator;
+use anyhow::{Context, Result, anyhow};
 use jsonwebtoken::{DecodingKey, TokenData, Validation, decode, jwk::JwkSet};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -146,7 +146,10 @@ impl JwtValidator {
 
     fn decode_token(&self, token: &str, jwks: &JwkSet) -> Result<OAuthClaims> {
         let header = jsonwebtoken::decode_header(token).context("invalid JWT header")?;
-        let kid = header.kid.as_deref().ok_or_else(|| anyhow!("JWT missing kid header"))?;
+        let kid = header
+            .kid
+            .as_deref()
+            .ok_or_else(|| anyhow!("JWT missing kid header"))?;
         let jwk = jwks
             .find(kid)
             .ok_or_else(|| anyhow!("no matching key for kid: {kid}"))?;
@@ -196,6 +199,9 @@ impl Validator for JwtValidator {
 
 async fn fetch_jwks(url: &str) -> Result<JwkSet> {
     let resp = reqwest::get(url).await.context("failed to fetch JWKS")?;
-    let jwks = resp.json::<JwkSet>().await.context("failed to parse JWKS")?;
+    let jwks = resp
+        .json::<JwkSet>()
+        .await
+        .context("failed to parse JWKS")?;
     Ok(jwks)
 }
