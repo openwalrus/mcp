@@ -2,5 +2,16 @@
 name = "rmcp-registry"
 version.workspace = true
 edition.workspace = true
+description = "API client for the official MCP registry."
 
 [dependencies]
+regress = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[build-dependencies]
+typify = { workspace = true }
+serde_json = { workspace = true }
+schemars = { workspace = true }
+prettyplease = { workspace = true }
+syn = { workspace = true }

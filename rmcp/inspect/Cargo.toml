@@ -4,4 +4,21 @@ version.workspace = true
 edition.workspace = true
 description = "Command line tool to inspect MCP servers."
 
+[[bin]]
+name = "rmcp-inspect"
+path = "src/bin/main.rs"
+
 [dependencies]
+clap = { workspace = true }
+rmcp = { workspace = true, features = [
+    "client",
+    "transport-child-process",
+    "transport-streamable-http-client-reqwest",
+] }
+rmcp-registry = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
