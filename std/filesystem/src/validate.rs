@@ -70,8 +70,8 @@ pub fn canonicalize_dirs(dirs: Vec<PathBuf>) -> Vec<PathBuf> {
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use crate::validate::{canonicalize_dirs, validate_path};
+    use std::fs;
 
     #[test]
     fn allows_path_within_dir() {

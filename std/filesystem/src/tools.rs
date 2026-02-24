@@ -1,6 +1,5 @@
 //! Tool implementations for the filesystem MCP server.
 
-use std::future::Future;
 use crate::FilesystemServer;
 use crate::validate::validate_path;
 use rmcp::{
@@ -9,6 +8,7 @@ use rmcp::{
     tool, tool_router,
 };
 use serde::{Deserialize, Serialize};
+use std::future::Future;
 use std::path::Path;
 
 /// Parameters for reading a single file.
@@ -304,11 +304,7 @@ impl FilesystemServer {
         tokio::fs::rename(&source, &dest)
             .await
             .map_err(|e| e.to_string())?;
-        Ok(format!(
-            "Moved {} to {}",
-            source.display(),
-            dest.display()
-        ))
+        Ok(format!("Moved {} to {}", source.display(), dest.display()))
     }
 
     /// Search for files matching a glob pattern.
@@ -426,7 +422,9 @@ fn build_diff(original: &str, modified: &str) -> String {
 }
 
 /// Recursively build a tree of the filesystem.
-fn build_tree(path: &Path) -> std::pin::Pin<Box<dyn Future<Output = Result<TreeNode, std::io::Error>> + Send + '_>> {
+fn build_tree(
+    path: &Path,
+) -> std::pin::Pin<Box<dyn Future<Output = Result<TreeNode, std::io::Error>> + Send + '_>> {
     Box::pin(async move {
         let name = path
             .file_name()

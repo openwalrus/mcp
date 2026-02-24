@@ -148,10 +148,7 @@ fn print_tools(tools: &[rmcp::model::Tool]) {
             if !props.is_empty() {
                 println!("    Parameters:");
                 for (name, prop) in props {
-                    let ty = prop
-                        .get("type")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("any");
+                    let ty = prop.get("type").and_then(|v| v.as_str()).unwrap_or("any");
                     let req = if required.contains(&name.as_str()) {
                         " (required)"
                     } else {
